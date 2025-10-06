@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件破坏者</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin: 25px 0;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .upload-area:hover {
+            border-color: #e74c3c;
+            background-color: #eaf2f8;
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-btn {
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .file-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #2980b9, #3498db);
+        }
+        
+        .control-group {
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .corrupt-btn {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .corrupt-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #c0392b, #e74c3c);
+        }
+        
+        .download-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+            display: none;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #27ae60, #2ecc71);
+        }
+        
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eaf2f8;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .file-info p {
+            margin: 8px 0;
+            color: #2c3e50;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #e74c3c;
+            min-height: 24px;
+        }
+        
+        footer {
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文件破坏者v1.0</h1>
+        <p class="subtitle">文件破坏者，你的工作好帮手!(bs)</p>
+        
+        <div class="upload-area" id="dropArea">
+            <div class="upload-icon">📁</div>
+            <p class="upload-text">将文件拖放到此处或点击下方按钮选择文件</p>
+            <input type="file" id="fileInput" class="file-input" accept="*">
+            <button class="file-btn" id="selectFileBtn">选择文件</button>
+        </div>
+        
+        <div class="control-group">
+            <label for="interval">破坏间隔（字节）：</label>
+            <input type="number" id="interval" min="1" value="10" placeholder="输入每隔多少字节破坏一个字节">
+            <p>例如：输入10表示每10个字节破坏第10个字节</p>
+        </div>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="btn-group">
+            <button class="action-btn corrupt-btn" id="corruptBtn">破坏文件</button>
+            <button class="action-btn download-btn" id="downloadBtn">下载破坏文件</button>
+        </div>
+        
+        <div class="file-info" id="fileInfo"></div>
+        
+        <footer>
+            <p>注意：请不要随便破坏重要文件，后果自负!</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM
+            const fileInput = document.getElementById('fileInput');
+            const selectFileBtn = document.getElementById('selectFileBtn');
+            const dropArea = document.getElementById('dropArea');
+            const intervalInput = document.getElementById('interval');
+            const corruptBtn = document.getElementById('corruptBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const fileInfo = document.getElementById('fileInfo');
+            const status = document.getElementById('status');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            
+            // 全局变量
+            let originalFile = null;
+            let corruptedBlob = null;
+            
+            // 事件监听器
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            corruptBtn.addEventListener('click', corruptFile);
+            downloadBtn.addEventListener('click', downloadFile);
+            
+            // 拖放功能
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.style.borderColor = '#e74c3c';
+                dropArea.style.backgroundColor = '#ffebee';
+            }
+            
+            function unhighlight() {
+                dropArea.style.borderColor = '#3498db';
+                dropArea.style.backgroundColor = '#f8f9fa';
+            }
+            
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length) {
+                    fileInput.files = files;
+                    handleFileSelect();
+                }
+            }
+            
+            // 处理文件选择
+            function handleFileSelect() {
+                const files = fileInput.files;
+                if (files.length === 0) return;
+                
+                originalFile = files[0];
+                
+                // 显示文件信息
+                fileInfo.innerHTML = `
+                    <p><strong>文件名:</strong> ${originalFile.name}</p>
+                    <p><strong>文件大小:</strong> ${formatFileSize(originalFile.size)}</p>
+                    <p><strong>文件类型:</strong> ${originalFile.type || '未知'}</p>
+                `;
+                fileInfo.style.display = 'block';
+                status.textContent = '';
+                downloadBtn.style.display = 'none';
+                corruptedBlob = null;
+            }
+            
+            // 格式化文件大小
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // 破坏文件
+            async function corruptFile() {
+                if (!originalFile) {
+                    status.textContent = '请先选择一个文件';
+                    return;
+                }
+                
+                const interval = parseInt(intervalInput.value);
+                if (isNaN(interval) || interval < 1) {
+                    status.textContent = '请输入有效的破坏间隔（至少为1）！';
+                    return;
+                }
+                
+                status.textContent = '文件破坏中...';
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                
+                try {
+                    // 读取文件为ArrayBuffer
+                    const arrayBuffer = await originalFile.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    const corruptedArray = new Uint8Array(uint8Array.length);
+                    
+                    // 复制原始数据
+                    corruptedArray.set(uint8Array);
+                    
+                    // 破坏指定位置的字节
+                    let corruptedCount = 0;
+                    for (let i = interval - 1; i < corruptedArray.length; i += interval) {
+                        corruptedArray[i] = 0; // 将字节设置为0
+                        corruptedCount++;
+                        
+                        // 更新进度条
+                        if (corruptedCount % 1000 === 0) {
+                            const progress = Math.min(100, Math.floor((i / corruptedArray.length) * 100));
+                            progressBar.style.width = `${progress}%`;
+                        }
+                    }
+                    
+                    // 完成进度
+                    progressBar.style.width = '100%';
+                    
+                    // 创建Blob
+                    corruptedBlob = new Blob([corruptedArray], { type: originalFile.type });
+                    
+                    status.textContent = `破坏完成！共破坏了 ${corruptedCount} 个字节。`;
+                    downloadBtn.style.display = 'inline-block';
+                } catch (error) {
+                    console.error('文件破坏失败:', error);
+                    status.textContent = '文件破坏失败！请重试。';
+                    progressContainer.style.display = 'none';
+                }
+            }
+            
+            // 下载文件
+            function downloadFile() {
+                if (!corruptedBlob) {
+                    status.textContent = '请先破坏文件！';
+                    return;
+                }
+                
+                const url = URL.createObjectURL(corruptedBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `破坏_${originalFile.name}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+    </script>
+</body>
+</html>
