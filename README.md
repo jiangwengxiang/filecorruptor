@@ -1,2 +1,2 @@
-# filedestroyer
-File Destroyer｜文件破坏者
+# file corruptor
+File corruptor｜文件破坏者
